@@ -5,15 +5,13 @@ from pygame.locals import *
 #initialize pygame
 pygame.init()
 
-#set screen size
+#create game window
 screen_width = 300
 screen_height = 300
-
-#create game window with a name
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('TicTacToe')
 
-#define variables
+#initialize variables
 line_width = 6
 markers = []
 clicked = False
@@ -21,6 +19,7 @@ pos = []
 player = 1
 winner = 0
 game_over = False
+click_count = 0
 again_rect = Rect(screen_width // 2 - 80, screen_height // 2, 160, 50)
 
 green = (0, 255, 0)
@@ -29,7 +28,7 @@ blue = (0, 0, 255)
 
 font = pygame.font.SysFont(None, 40)
 
-#creates the game board on the screen
+#Creates the game board on the screen
 def draw_grid():
     bg = (255, 255, 200)
     grid = (50, 50, 50)
@@ -43,21 +42,21 @@ for i in range(3):
     row = [0] * 3
     markers.append(row)
 
-#draws a marker in the clicked cell depending on the player
+#Draws a marker in the clicked cell depending on the player
 def draw_markers():
     x_pos = 0
     for x in markers:
         y_pos = 0
         for y in x:
             if y == 1:
-                pygame.draw.line(screen, green, (x_pos * 100 + 15, y_pos * 100 + 15), (x_pos * 100 + 85, y_pos * 100 + 85), line_width)
-                pygame.draw.line(screen, green, (x_pos * 100 + 15, y_pos * 100 + 85), (x_pos * 100 + 85, y_pos * 100 + 15), line_width)
+                pygame.draw.line(screen, red, (x_pos * 100 + 15, y_pos * 100 + 15), (x_pos * 100 + 85, y_pos * 100 + 85), line_width)
+                pygame.draw.line(screen, red, (x_pos * 100 + 15, y_pos * 100 + 85), (x_pos * 100 + 85, y_pos * 100 + 15), line_width)
             if y == -1:
-                pygame.draw.circle(screen, red, (x_pos * 100 + 50, y_pos * 100 + 50), 38, line_width)
+                pygame.draw.circle(screen, green, (x_pos * 100 + 50, y_pos * 100 + 50), 38, line_width)
             y_pos += 1
         x_pos += 1
 
-#checks to see if the game has ended with a winner
+#Checks to see if the game has ended with a winner
 def check_winner():
     global winner
     global game_over
@@ -98,7 +97,19 @@ def draw_winner(winner):
     pygame.draw.rect(screen, green, again_rect)
     screen.blit(again_img, (screen_width // 2 - 73, screen_height // 2 + 10))
 
-#create game loop with exit option
+#Displays "Tie Game!" and an option to play again
+def draw_tie():
+    tie_text = 'Tie Game!'
+    tie_img = font.render(tie_text, True, blue)
+    pygame.draw.rect(screen, green, (screen_width // 2 - 74, screen_height // 2 - 60, 150, 50))
+    screen.blit(tie_img, (screen_width // 2 - 70, screen_height // 2 - 50))
+
+    again_text = 'Play Again'
+    again_img = font.render(again_text, True, blue)
+    pygame.draw.rect(screen, green, again_rect)
+    screen.blit(again_img, (screen_width // 2 - 73, screen_height // 2 + 10))
+
+#create game loop
 run = True
 while run:
 
@@ -112,8 +123,8 @@ while run:
         if event.type == pygame.QUIT:
             run = False
 
-        #get position of mouse when clicked and determines player
-        if game_over == 0:
+        #get position of mouse when clicked and determine player
+        if game_over == False:
             if event.type == pygame.MOUSEBUTTONDOWN and clicked == False:
                 clicked = True
             if event.type == pygame.MOUSEBUTTONUP and clicked == True:
@@ -124,11 +135,19 @@ while run:
                 if markers[cell_x // 100][cell_y // 100] == 0:
                     markers[cell_x // 100][cell_y // 100] = player
                     player *= -1
+                    click_count += 1
                     check_winner()
+                #check if there has been a tie
+                if click_count == 9 and game_over == False:
+                    click_count += 1
+                    game_over = True
 
-    #Display the winner
+    #display the outcome of the game
     if game_over == True:
-        draw_winner(winner)
+        if click_count < 10:
+            draw_winner(winner)
+        else:
+            draw_tie()
         #check for user click on Play Again
         if event.type == pygame.MOUSEBUTTONDOWN and clicked == False:
             clicked = True
@@ -142,6 +161,7 @@ while run:
                 player = 1
                 winner = 0
                 game_over = False
+                click_count = 0
                 for i in range(3):
                     row = [0] * 3
                     markers.append(row)
